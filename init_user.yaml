@@ -1,0 +1,45 @@
+---
+# based on https://www.digitalocean.com/community/tutorials/how-to-use-ansible-to-automate-initial-server-setup-on-ubuntu-18-04
+- hosts: all
+  become: true
+  vars_files:
+    - vars/init_user_vars.yaml
+
+  tasks:
+    # Sudo Group Setup
+    - name: Make sure we have a 'pcewheel' group
+      group:
+        name: pcewheel
+        state: present
+
+    - name: Allow 'pcewheel' group to have passwordless sudo
+      copy:
+        content: "%pcewheel ALL=(ALL) NOPASSWD: ALL"
+        dest: /etc/sudoers.d/99-pce-wheel-nopass
+        owner: root
+        group: root
+        mode: 0440
+        validate: visudo -cf %s
+
+    # User + Key Setup
+    - name: Create a new regular user with sudo privileges
+      user:
+        name: "{{ create_user }}"
+        state: present
+        groups: pcewheel
+        append: true
+        create_home: true
+        shell: /bin/bash
+
+    - name: Set authorized key for remote user
+      authorized_key:
+        user: "{{ create_user }}"
+        state: present
+        key: "{{ copy_local_key }}"
+    # TODO: sshd restart needed
+    # - name: Disable password authentication for root
+    #   lineinfile:
+    #     path: /etc/ssh/sshd_config
+    #     state: present
+    #     regexp: '^#?PermitRootLogin'
+    #     line: 'PermitRootLogin prohibit-password'
