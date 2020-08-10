@@ -1,0 +1,24 @@
+home_users:
+  - name: "{{ home_user_data.user_a.name }}"
+    password: "{{ home_user_data.user_a.os_password }}"
+    uid: 1000
+    gid: 1000
+    groups: sftpusers,smbtv,smbmusic,smbbooks,smbpictures,smbothers
+  - name: "{{ home_user_data.user_b.name }}"
+    password: "{{ home_user_data.user_b.os_password }}"
+    uid: 1001
+    gid: 1001
+#    update_password: always
+    groups: smbtv,smbmusicro,smbpictures
+  - name: "{{ home_user_data.user_c.name }}"
+    password: "{{ home_user_data.user_c.os_password }}"
+    uid: 1002
+    gid: 1002
+    groups: smbtvro,smbmusicro,smbpicturesro
+  - name: "{{ home_user_data.user_d.name }}"
+    uid: 1003
+    gid: 1003
+    groups: sftpusers
+copy_ssh_keys:
+  - user: "{{ home_user_data.user_a.name }}"
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa_' + home_user_data.user_a.name + '.pub') }}"

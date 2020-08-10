@@ -1,6 +1,7 @@
 ---
 # based on https://www.digitalocean.com/community/tutorials/how-to-use-ansible-to-automate-initial-server-setup-on-ubuntu-18-04
-- hosts: all
+- name: Setup operations user
+  hosts: all
   become: true
   vars_files:
     - vars/init_user_vars.yaml
@@ -10,6 +11,7 @@
     - name: Make sure we have a 'pcewheel' group
       group:
         name: pcewheel
+        gid: 4100
         state: present
 
     - name: Allow 'pcewheel' group to have passwordless sudo
@@ -22,10 +24,18 @@
         validate: visudo -cf %s
 
     # User + Key Setup
+    - name: Create primary group for a user
+      group:
+        name: "{{ create_user }}"
+        gid: 4000
+        state: present
+
     - name: Create a new regular user with sudo privileges
       user:
         name: "{{ create_user }}"
+        uid: 4000
         state: present
+        group: "{{ create_user }}"
         groups: pcewheel
         append: true
         create_home: true
@@ -48,6 +58,6 @@
         - restart ssh
   handlers:
    - name: restart ssh
-     service:
+     service: >
        name=sshd
        state=restarted

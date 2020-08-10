@@ -1,0 +1,51 @@
+# nezbytna migrace
+# group 1001 -> 1500 = smbrw -> pouzito na /mnt/bck adresarich
+# group 1004 -> 1501 = sftp_users - primary pcebackup -> pouzito na /mnt/tmpdata/backups/pavel_backup/backup a vsech datech v tomto addr
+secondary_groups:
+  # smbrw depricate - replaced by smbmusic and smbbooks 
+  - name: sftpusers
+    gid: 1501
+  - name: smbtv
+    gid: 1502
+  - name: smbtvro
+    gid: 1503
+  - name: smbmusic
+    gid: 1504
+  - name: smbmusicro
+    gid: 1505
+  - name: smbbooks
+    gid: 1506
+  - name: smbbooksro
+    gid: 1507
+  - name: smbpictures
+    gid: 1508
+  - name: smbpicturesro
+    gid: 1509
+  - name: smbothers
+    gid: 1510
+samba_shares:
+  - name: films
+    root: "/mnt/tmpdata"
+    group: smbtv
+  - name: tvseries
+    root: "/mnt/tmpdata"
+    group: smbtv
+  - name: others
+    root: "/mnt/tmpdata"
+    group: smbothers
+  - name: music
+    root: "/mnt/bckdata"
+    group: smbmusic
+  - name: books
+    root: "/mnt/bckdata"
+    group: smbbooks
+  - name: pictures
+    root: "/mnt/bckdata"
+    group: smbpictures
+samba_users:
+  - name: "{{ home_user_data.user_a.name }}"
+    password: "{{ home_user_data.user_a.smb_password }}"
+  - name: "{{ home_user_data.user_b.name }}"
+    password: "{{ home_user_data.user_b.smb_password }}"
+  - name: "{{ home_user_data.user_c.name }}"
+    password: "{{ home_user_data.user_c.smb_password }}"
