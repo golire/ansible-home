@@ -1,0 +1,69 @@
+---
+# setup users and groups
+- name: Create secondary groups
+  become: true
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  loop: "{{ secondary_groups }}"
+
+- name: Create users
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.key }}"
+    password: "{{ item.value.password | default(omit) | password_hash('sha512') }}"
+    update_password: "{{ item.value.update_password | default('on_create') }}"
+    uid: "{{ item.value.uid | default(omit) }}"
+    state: present
+    groups: "{{ item.value.groups | default('') }}"
+    append: true
+    create_home: true
+    shell: /bin/bash
+  loop: "{{ home_users | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Set authorized key for remote users
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ item.key }}"
+    state: present
+    key: "{{ item.value.ssh_pub_key }}"
+  loop: "{{ home_users | dict2items }}"
+  when: "'ssh_pub_key' in item.value"
+  loop_control:
+    label: "{{ item.key }}"
+
+# setup extra mount points
+- name: Create mount point directories
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ mount_points }}"
+
+- name: Get stats of mount devices
+  ansible.builtin.stat:
+    path: "{{ item.device }}"
+  loop: "{{ mount_points }}"
+  register: mp_devices_all
+
+- name: Pick existing devices
+  set_fact:
+    mp_devices_exist: "{{ mp_devices_all.results | selectattr('stat.exists') | map(attribute='stat.path') }}"
+
+- name: Setup mount points
+  become: true
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    src: "{{ item.device }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.opts | default(omit) }}"
+    state: mounted
+    boot: true
+  loop: "{{ mount_points }}"
+  when: force_all_devices or (item.device in mp_devices_exist)
