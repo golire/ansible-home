@@ -3,8 +3,9 @@
 - name: Setup operations user
   hosts: all
   become: true
-  vars_files:
-    - vars/init_user_vars.yaml
+  vars:
+    create_user: pceops
+    copy_local_key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa_ansible.pub') }}"
 
   tasks:
     # Sudo Group Setup

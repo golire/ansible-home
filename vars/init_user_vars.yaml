@@ -1,3 +1,0 @@
----
-create_user: pceops
-copy_local_key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa_ansible.pub') }}"
