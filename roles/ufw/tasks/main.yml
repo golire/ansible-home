@@ -1,0 +1,25 @@
+---
+- name: Install ufw package
+  become: true
+  apt:
+    name: ufw
+    state: present
+
+- name: Enable SSH
+  become: true
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Enable Samba
+  become: true
+  ufw:
+    rule: allow
+    name: Samba
+
+- name: Enable ufw and deny all incomming traffic
+  become: true
+  ufw:
+    state: enabled
+    default: deny
+    direction: incoming

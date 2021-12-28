@@ -5,3 +5,4 @@
   roles:
     - role: os_basics
     - role: samba
+    - role: ufw
