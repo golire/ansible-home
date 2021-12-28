@@ -1,0 +1,82 @@
+---
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+# adds also apt module prerequisitiy 
+# pip install python-apt / python3-apt to ansible remote python env
+- name: Install samba packages
+  become: true
+  apt:
+    name: 
+      - samba-common
+      - samba
+      - samba-client
+    state: present
+
+- name: Get stats of share root folders
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ samba_shares | map(attribute='root') | unique }}"
+  register: smb_root_stats
+
+- name: Create missing Samba share root folders
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ item.stat.path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ smb_root_stats.results }}"
+  when: not item.stat.exists
+  loop_control:
+    label: "{{ item.stat.path }}"
+
+- name: Create samba shared folders
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ [item.root,item.name|lower]|join('/') }}"
+    owner: "{{ item.owner|default('root') }}"
+    group: "{{ item.group|default('smbrw') }}"
+    mode: "{{ item.directory_mode|default('0775') }}"
+  loop: "{{ samba_shares }}"
+
+- name: Create Samba configuration file
+  become: true
+  template:
+    dest: /etc/samba/smb.conf
+    src: smb.conf.j2
+    backup: true
+    validate: 'testparm -s %s'
+  notify:
+    - Restart Samba services
+
+- name: Start Samba service(s)
+  become: true
+  service:
+    name: smbd
+    state: started
+    enabled: true
+
+  # sync pass smb -> OS - controlled by smb.conf
+  # sync pass OS -> smb - controlled by PAM
+- name: Create Samba users if they don't exist yet
+  become: true
+  shell: >
+    set -o nounset -o pipefail -o errexit &&
+    (pdbedit -L --user={{ item.key }} 2>&1 > /dev/null) \
+    || (echo {{ item.value.smb_password }}; echo {{ item.value.smb_password }}) \
+    | smbpasswd -s -a {{ item.key }}
+  args:
+    executable: /bin/bash
+  loop: "{{ home_users | dict2items }}"
+  when: "'smb_password' in item.value"
+  no_log: true
+  register: create_user_output
+  changed_when: "'Added user' in create_user_output.stdout"
+  loop_control:
+    label: "{{ item.key }}"

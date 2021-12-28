@@ -1,0 +1,6 @@
+---
+- name: Restart Samba services
+  become: true
+  service:
+    name: smbd
+    state: restarted
