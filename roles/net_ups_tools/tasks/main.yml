@@ -1,0 +1,48 @@
+---
+# tasks file for net_ups_tools
+- name: Install network ups tools package
+  become: true
+  apt:
+    name: nut
+    state: present
+
+- name: Add configuration for AEG UPS
+  become: true
+  blockinfile:
+    path: /etc/nut/ups.conf
+    insertafter: EOF
+    block: "{{ lookup('template', 'aegph.j2') }}"
+  notify:
+    - Restart nut-server
+
+- name: Add users
+  become: true
+  blockinfile:
+    path: /etc/nut/upsd.users
+    insertafter: EOF
+    block: "{{ lookup('template', 'users.j2') }}"
+  notify:
+    - Restart nut-server
+
+- name: Start nut-server
+  become: true
+  service:
+    name: nut-server
+    state: started
+    enabled: true
+
+- name: Configure nut-monitor
+  become: true
+  blockinfile:
+    insertafter: EOF
+    path: /etc/nut/upsmon.conf
+    block: "{{ lookup('template', 'monitor.j2') }}"
+  notify:
+    - Restart nut-monitor
+
+- name: Start nut-monitor
+  become: true
+  service:
+    name: nut-monitor
+    state: started
+    enabled: true

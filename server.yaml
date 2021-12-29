@@ -6,3 +6,4 @@
     - role: os_basics
     - role: samba
     - role: ufw
+    - role: net_ups_tools

@@ -1,0 +1,11 @@
+---
+- name: Restart nut-server
+  become: true
+  service:
+    name: nut-server
+    state: restarted
+- name: Restart nut-monitor
+  become: true
+  service:
+    name: nut-monitor
+    state: restarted
