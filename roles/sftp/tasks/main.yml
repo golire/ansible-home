@@ -1,0 +1,23 @@
+---
+# tasks file for sftp
+- name: Create SFTP root directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ '/mnt/tmpdata/backups/' + item.key }}"
+    owner: "{{ item.key }}"
+    group: "{{ item.key }}"
+    mode: '0644'
+  loop: "{{ home_users | dict2items }}"
+  when: "'sftpusers' in item.value.groups.split(',')"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Configure sshd
+  become: true
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    insertafter: EOF
+    block: "{{ lookup('template', 'ssh_sftp_conf.j2') }}"
+  notify:
+    - Restart sshd

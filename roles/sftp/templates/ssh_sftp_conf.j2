@@ -1,0 +1,5 @@
+Match group sftpusers
+	X11Forwarding no
+	AllowTcpForwarding no
+	ChrootDirectory /mnt/tmpdata/backups/%u
+	ForceCommand internal-sftp
