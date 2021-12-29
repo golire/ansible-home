@@ -19,7 +19,7 @@
     groups: "{{ item.value.groups | default('') }}"
     append: true
     create_home: true
-    shell: /bin/bash
+    shell: "{{ item.value.shell | default('/bin/bash') }}" 
   loop: "{{ home_users | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
