@@ -12,7 +12,7 @@
   become: true
   ansible.builtin.user:
     name: "{{ item.key }}"
-    password: "{{ item.value.password | default(omit) | password_hash('sha512') }}"
+    password: "{{ item.value.os_password | default(omit) | password_hash('sha512') }}"
     update_password: "{{ item.value.update_password | default('on_create') }}"
     uid: "{{ item.value.uid | default(omit) }}"
     state: present
