@@ -12,12 +12,13 @@
     ```
 
 #### Vagrant test instance
-- Configure vagant instance so that it has fix IP address assigned
+- Configure vagant instance so that it has fix IP address assigned or guest DNS name is
+  visible from host
 - Spin up test instance using vagrant
-- Update `init_inventory.ini`, add/edit vagrant instance, it's fix IP
+- Update `init_inventory.ini`, add/edit vagrant instance, it's fix IP or DNS name
 - Execute `init_user.yaml` to create ansible operations user:
     ```bash
-    ansible-playbook -i init_inventory.ini  init_user.yaml -l unode1
+    ansible-playbook -i init_inventory.ini  init_user.yaml -l unode1.vagrant.pce
     ```
 
 ### Server configuration

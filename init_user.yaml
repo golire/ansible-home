@@ -10,10 +10,10 @@
   tasks:
     # Sudo Group Setup
     - name: Make sure we have a 'pcewheel' group
-      group:
+      ansible.builtin.group:
         name: pcewheel
-        gid: 4100
         state: present
+        system: true
 
     - name: Allow 'pcewheel' group to have passwordless sudo
       copy:
@@ -24,23 +24,15 @@
         mode: 0440
         validate: visudo -cf %s
 
-    # User + Key Setup
-    - name: Create primary group for a user
-      group:
-        name: "{{ create_user }}"
-        gid: 4000
-        state: present
-
     - name: Create a new regular user with sudo privileges
       user:
         name: "{{ create_user }}"
-        uid: 4000
         state: present
-        group: "{{ create_user }}"
         groups: pcewheel
         append: true
         create_home: true
         shell: /bin/bash
+        system: true
 
     - name: Set authorized key for remote user
       authorized_key:
