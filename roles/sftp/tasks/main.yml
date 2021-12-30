@@ -1,17 +1,35 @@
 ---
 # tasks file for sftp
-- name: Create SFTP root directory
+- name: Create SFTP user root directories
   become: true
   ansible.builtin.file:
     state: directory
-    path: "{{ '/mnt/tmpdata/backups/' + item.key }}"
-    owner: "{{ item.key }}"
-    group: "{{ item.key }}"
-    mode: '0644'
+    path: "{{ [sftp_root_folder, item.key] | join('/') }}"
+    owner: root
+    group: root
+    mode: '0755'
   loop: "{{ home_users | dict2items }}"
   when: "'sftpusers' in item.value.groups.split(',')"
   loop_control:
     label: "{{ item.key }}"
+
+- name: "Build list of tuples (user directory, user name)"
+  set_fact:
+    sftp_user_folders_list: "{{ item.value.sftp_user_folders | split(',') | product([item.key]) | list | union(sftp_user_folders_list | default([])) }}"
+  loop: "{{ home_users | dict2items }}"
+  when: "('sftpusers' in item.value.groups.split(',')) and ('sftp_user_folders' in item.value)"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Create SFTP user accessible directories
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ [sftp_root_folder, item.1, item.0] | join('/') }}"
+    owner: "{{ item.1 }}"
+    group: "{{ item.1 }}"
+    mode: '0750'
+  loop: "{{ sftp_user_folders_list }}"
 
 - name: Configure sshd
   become: true

@@ -1,5 +1,5 @@
 Match group sftpusers
 	X11Forwarding no
 	AllowTcpForwarding no
-	ChrootDirectory /mnt/tmpdata/backups/%u
+	ChrootDirectory {{ sftp_root_folder }}/%u
 	ForceCommand internal-sftp

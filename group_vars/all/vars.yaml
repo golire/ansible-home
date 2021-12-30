@@ -43,3 +43,6 @@ samba_shares:
   - name: pictures
     root: "/mnt/bckdata"
     group: smbpictures
+
+sftp_root_folder: "/mnt/tmpdata/sftp_roots"
+
